@@ -12,7 +12,7 @@ TRAIN_FILE_NAME: str = "train.csv"
 TEST_FILE_NAME: str = "test.csv"
 TARGET_COLUMN = "case_status"
 CURRENT_YEAR = date.today().year
-PREPRPOCESSING_OBJECT_FILE_NAME = "preprocessing_object.pkl"
+PREPROCESSING_OBJECT_FILE_NAME = "preprocessing_object.pkl"
 SCHEMA_FILE_PATH=os.path.join("config","schema.yaml")
 
 '''
@@ -32,3 +32,10 @@ Data Validation realted contant start with DATA_VALIDATION VAR NAME
 DATA_VALIDATION_DIR_NAME: str = "data_validation"
 DATA_VALIDATION_DRIFT_REPORT_DIR: str = "drift_report"
 DATA_VALIDATION_DRIFT_REPORT_FILE_NAME: str = "report.yaml"
+
+"""
+Data Transformation ralated constant start with DATA_TRANSFORMATION VAR NAME
+"""
+DATA_TRANSFORMATION_DIR_NAME: str = "data_transformation"
+DATA_TRANSFORMATION_TRANSFORMED_DATA_DIR: str = "transformed"
+DATA_TRANSFORMATION_TRANSFORMED_OBJECT_DIR: str = "transformed_object"
