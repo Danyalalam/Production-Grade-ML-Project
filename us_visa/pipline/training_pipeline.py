@@ -1,31 +1,39 @@
 import sys
-from us_visa.exception import USvisaException
-from us_visa.logger import logging
-from us_visa.components.data_ingestion import DataIngestion
-from us_visa.components.data_validation import DataValidation
-from us_visa.components.data_transformation import DataTransformation
-from us_visa.components.model_trainer import ModelTrainer
+from us_visa.exception import USvisaException  # Custom exception class for handling errors
+from us_visa.logger import logging  # Custom logger for logging messages
+from us_visa.components.data_ingestion import DataIngestion  # Data Ingestion component
+from us_visa.components.data_validation import DataValidation  # Data Validation component
+from us_visa.components.data_transformation import DataTransformation  # Data Transformation component
+from us_visa.components.model_trainer import ModelTrainer  # Model Trainer component
+from us_visa.components.model_evaluation import ModelEvaluation  # Model Evaluation component
+from us_visa.components.model_pusher import ModelPusher # Model Pusher component
 
-from us_visa.entity.config_entity import (DataIngestionConfig,
-                                          DataValidationConfig,
-                                          DataTransformationConfig,
-                                          ModelTrainerConfig)
-                                         
 
-from us_visa.entity.artifact_entity import (DataIngestionArtifact,
-                                            DataValidationArtifact,
-                                            DataTransformationArtifact,
-                                             ModelTrainerArtifact)
+from us_visa.entity.config_entity import (DataIngestionConfig,  # Configuration for Data Ingestion
+                                          DataValidationConfig,  # Configuration for Data Validation
+                                          DataTransformationConfig,  # Configuration for Data Transformation
+                                          ModelTrainerConfig,         # Configuration for Model Trainer
+                                          ModelEvaluationConfig,       # Configuration for Model Evaluation 
+                                          ModelPusherConfig)      # Configuration for Model Pusher
+
+from us_visa.entity.artifact_entity import (DataIngestionArtifact,  # Artifact for Data Ingestion output
+                                            DataValidationArtifact,  # Artifact for Data Validation output
+                                            DataTransformationArtifact,  # Artifact for Data Transformation output
+                                            ModelTrainerArtifact,     # Artifact for Model Trainer output
+                                            ModelEvaluationArtifact,  # Artifact for Model Evaluation analysis
+                                            ModelPusherArtifact)  # Artifact for Modelpusher output 
 
 
 class TrainPipeline:
     def __init__(self):
+        # Initialize configurations for each component of the pipeline
         self.data_ingestion_config = DataIngestionConfig()
         self.data_validation_config = DataValidationConfig()
         self.data_transformation_config = DataTransformationConfig()
         self.model_trainer_config = ModelTrainerConfig()
+        self.model_evaluation_config = ModelEvaluationConfig()
+        self.model_pusher_config = ModelPusherConfig()
 
-    
     def start_data_ingestion(self) -> DataIngestionArtifact:
         """
         This method of TrainPipeline class is responsible for starting data ingestion component
@@ -33,80 +41,117 @@ class TrainPipeline:
         try:
             logging.info("Entered the start_data_ingestion method of TrainPipeline class")
             logging.info("Getting the data from mongodb")
+            # Initialize Data Ingestion component with its configuration
             data_ingestion = DataIngestion(data_ingestion_config=self.data_ingestion_config)
+            # Start the data ingestion process and get the artifact
             data_ingestion_artifact = data_ingestion.initiate_data_ingestion()
             logging.info("Got the train_set and test_set from mongodb")
-            logging.info(
-                "Exited the start_data_ingestion method of TrainPipeline class"
-            )
-            return data_ingestion_artifact
+            logging.info("Exited the start_data_ingestion method of TrainPipeline class")
+            return data_ingestion_artifact  # Return the data ingestion artifact
         except Exception as e:
+            # Handle exceptions and raise custom USvisaException
             raise USvisaException(e, sys) from e
-        
-        
-    
+
     def start_data_validation(self, data_ingestion_artifact: DataIngestionArtifact) -> DataValidationArtifact:
         """
         This method of TrainPipeline class is responsible for starting data validation component
         """
         logging.info("Entered the start_data_validation method of TrainPipeline class")
-
         try:
+            # Initialize Data Validation component with its configuration and input data artifact
             data_validation = DataValidation(data_ingestion_artifact=data_ingestion_artifact,
-                                             data_validation_config=self.data_validation_config
-                                             )
+                                             data_validation_config=self.data_validation_config)
 
+            # Start the data validation process and get the artifact
             data_validation_artifact = data_validation.initiate_data_validation()
-
             logging.info("Performed the data validation operation")
-
-            logging.info(
-                "Exited the start_data_validation method of TrainPipeline class"
-            )
-
-            return data_validation_artifact
-
+            logging.info("Exited the start_data_validation method of TrainPipeline class")
+            return data_validation_artifact  # Return the data validation artifact
         except Exception as e:
-            raise USvisaException(e, sys) from e    
-        
+            # Handle exceptions and raise custom USvisaException
+            raise USvisaException(e, sys) from e
+
     def start_data_transformation(self, data_ingestion_artifact: DataIngestionArtifact, data_validation_artifact: DataValidationArtifact) -> DataTransformationArtifact:
         """
         This method of TrainPipeline class is responsible for starting data transformation component
         """
         try:
+            # Initialize Data Transformation component with its configuration and input data artifacts
             data_transformation = DataTransformation(data_ingestion_artifact=data_ingestion_artifact,
                                                      data_transformation_config=self.data_transformation_config,
                                                      data_validation_artifact=data_validation_artifact)
+            # Start the data transformation process and get the artifact
             data_transformation_artifact = data_transformation.initiate_data_transformation()
-            return data_transformation_artifact
+            return data_transformation_artifact  # Return the data transformation artifact
         except Exception as e:
+            # Handle exceptions and raise custom USvisaException
             raise USvisaException(e, sys)
-        
-    
+
     def start_model_trainer(self, data_transformation_artifact: DataTransformationArtifact) -> ModelTrainerArtifact:
         """
         This method of TrainPipeline class is responsible for starting model training
         """
         try:
+            # Initialize Model Trainer component with its configuration and transformed data artifact
             model_trainer = ModelTrainer(data_transformation_artifact=data_transformation_artifact,
-                                         model_trainer_config=self.model_trainer_config
-                                         )
+                                         model_trainer_config=self.model_trainer_config)
+            # Start the model training process and get the artifact
             model_trainer_artifact = model_trainer.initiate_model_trainer()
-            return model_trainer_artifact
-
+            return model_trainer_artifact  # Return the model trainer artifact
+        except Exception as e:
+            # Handle exceptions and raise custom USvisaException
+            raise USvisaException(e, sys)
+        
+        
+    def start_model_evaluation(self, data_ingestion_artifact: DataIngestionArtifact,
+                               model_trainer_artifact: ModelTrainerArtifact) -> ModelEvaluationArtifact:
+        """
+        This method of TrainPipeline class is responsible for starting modle evaluation
+        """
+        try:
+            model_evaluation = ModelEvaluation(model_eval_config=self.model_evaluation_config,
+                                               data_ingestion_artifact=data_ingestion_artifact,
+                                               model_trainer_artifact=model_trainer_artifact)
+            model_evaluation_artifact = model_evaluation.initiate_model_evaluation()
+            return model_evaluation_artifact
         except Exception as e:
             raise USvisaException(e, sys)
         
-    def run_pipeline(self, ) -> None:
+    def start_model_pusher(self, model_evaluation_artifact: ModelEvaluationArtifact) -> ModelPusherArtifact:
+        """
+        This method of TrainPipeline class is responsible for starting model pushing
+        """
+        try:
+            model_pusher = ModelPusher(model_evaluation_artifact=model_evaluation_artifact,
+                                       model_pusher_config=self.model_pusher_config
+                                       )
+            model_pusher_artifact = model_pusher.initiate_model_pusher()
+            return model_pusher_artifact
+        except Exception as e:
+            raise USvisaException(e, sys)
+        
+
+    def run_pipeline(self) -> None:
         """
         This method of TrainPipeline class is responsible for running complete pipeline
         """
         try:
+            # Start the data ingestion process and get the artifact
             data_ingestion_artifact = self.start_data_ingestion()
+            # Start the data validation process using the data ingestion artifact and get the artifact
             data_validation_artifact = self.start_data_validation(data_ingestion_artifact=data_ingestion_artifact)
+            # Start the data transformation process using the data ingestion and validation artifacts and get the artifact
             data_transformation_artifact = self.start_data_transformation(data_ingestion_artifact=data_ingestion_artifact,
                                                                          data_validation_artifact=data_validation_artifact)
+            # Start the model training process using the data transformation artifact and get the artifact
             model_trainer_artifact = self.start_model_trainer(data_transformation_artifact=data_transformation_artifact)
+            model_evaluation_artifact = self.start_model_evaluation(data_ingestion_artifact=data_ingestion_artifact,
+                                                                    model_trainer_artifact=model_trainer_artifact)
+            if not model_evaluation_artifact.is_model_accepted:
+                logging.info(f"Model not accepted.")
+                return None
+            model_pusher_artifact = self.start_model_pusher(model_evaluation_artifact=model_evaluation_artifact)
+            
         except Exception as e:
-            raise USvisaException(e, sys)    
-        
+            # Handle exceptions and raise custom USvisaException
+            raise USvisaException(e, sys)
