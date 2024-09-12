@@ -1,4 +1,4 @@
-# US Visa Approval Prediction
+# Production Ready Machine Learning Project
 
 This project aims to build a machine learning pipeline for predicting US visa approvals using historical data. The end-to-end solution includes data ingestion, transformation, model training, evaluation, and deployment using cloud-based CI/CD with AWS and Docker.
 
